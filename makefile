@@ -11,27 +11,31 @@ SRCS			=	srcs/main.cpp		\
 
 #=============================FLAGS AND COMPILERS===============================
 CCPP			=	clang++
-CPPFLAGS		=	-m64 -Wall -Wextra -Werror -I .includes/
+CPPFLAGS		=	-Wall -Wextra -Werror -I .includes/
 NAME			=	woody_woodpacker
+NAME_LIB		=	./libft/libft.a
 
 
 #================================AVAILABLE RULES================================
 #-----
-all:		$(NAME)
+all:		make_libs $(NAME)
+
+#-----
+make_libs:
+		$(MAKE) add -C ./libft/
 
 #-----
 $(NAME):	${OBJS}
-		${CCPP} ${CPPFLAGS} -o ${NAME} ${OBJS}
-
+		${CCPP} ${CPPFLAGS} -o ${NAME} ${OBJS} ${NAME_LIB}
 #-----
 clean:
+		$(MAKE) clean -C ./libft/
 		rm -f ${OBJS}
-		rm -f ${OBJS_SHUFFLE}
 
 #-----
 fclean:		clean
+		$(MAKE) fclean -C ./libft/
 		rm -f ${NAME}
-		rm -f ${NAME_SHUFFLE}
 
 #-----
 re:		fclean all
