@@ -1,7 +1,7 @@
 ##---------------------------------MAKEFILE-------------------------------------
 
 #====================================OBJS=======================================
-OBJS		=	${SRCS:.cpp=.o}
+OBJS			=	${SRCS:.cpp=.o}
 
 
 #====================================SRCS=======================================
@@ -14,7 +14,7 @@ CCPP			=	clang++
 CPPFLAGS		=	-Wall -Wextra -Werror -I .includes/
 NAME			=	woody_woodpacker
 NAME_LIB		=	./libft/libft.a
-
+NAME_BINARY		=	woody
 
 #================================AVAILABLE RULES================================
 #-----
@@ -36,6 +36,7 @@ clean:
 fclean:		clean
 		$(MAKE) fclean -C ./libft/
 		rm -f ${NAME}
+		rm -f ${NAME_BINARY}
 
 #-----
 re:		fclean all
