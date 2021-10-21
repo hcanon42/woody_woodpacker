@@ -18,5 +18,7 @@ typedef struct	s_packer
 }				t_packer;
 
 void				openFile(char *to_read, t_packer *pack);
+int					initialize_packer(t_packer *pack, char *file_to_open);
+
 
 #endif
