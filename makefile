@@ -34,12 +34,12 @@ clean:
 
 #-----
 fclean:		clean
-		$(MAKE) fclean -C ./libft/
+		$(MAKE) erase -C ./libft/
 		rm -f ${NAME}
 		rm -f ${NAME_BINARY}
 
 #-----
-re:		fclean all
-
+re:			fclean all
+		$(MAKE) reset -C ./libft/
 #-----
 .PHONY:		all clean fclean re

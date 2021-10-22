@@ -23,6 +23,7 @@ typedef struct		s_list
 	struct s_list	*next;
 }					t_list;
 
+int					ft_printf(const char *str, ...);
 char				*hexa(long n, int type);
 int					print(char *str, char *flags, int *width);
 int					skip_chars(const char *str, int *i, int *cpt);

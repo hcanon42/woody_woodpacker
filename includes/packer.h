@@ -21,8 +21,8 @@ typedef struct	s_packer
 	int			_type;
 }				t_packer;
 
-void				openFile(char *to_read, t_packer *pack);
-int					initialize_packer(t_packer *pack, char *file_to_open);
-int					inject_code(unsigned char *f_mmaped, t_packer *pack);
+void			openFile(char *to_read, t_packer *pack);
+int				initialize_packer(t_packer *pack, char *file_to_open);
+int				inject_code(unsigned char *f_mmaped, t_packer *pack);
 
 #endif

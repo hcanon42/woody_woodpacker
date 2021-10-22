@@ -60,7 +60,7 @@ int		main(int ac, char **av)
 		return (1);
 	}
 
-    printf("[+] Mmap file in memory...\n");
+    ft_putstr("[+] Mmap file in memory...\n");
     if((f_mmaped = mmap(NULL, pack->_size, PROT_READ | PROT_WRITE, MAP_SHARED, pack->_fd, 0)) == NULL)
     {
 		ft_putstr_fd("Error while mmap\n", 2);

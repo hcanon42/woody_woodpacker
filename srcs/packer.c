@@ -5,11 +5,8 @@ char		jmp[] = "xe9xffxffxffxff";
 char		pusha[] = "x60";
 char		popa[] = "x61";
 
-/* Sur mon système, l'adresse de base où sera mappé le fichier est 0x08048000 */
-# define START_ADRESS (unsigned int) 0x0000000000400000
-# define CODE_SIZE (ft_strlen(shellcode) + ft_strlen(jmp) + ft_strlen(pusha) + ft_strlen(popa))
 # define CODE_OFFSET (elf_pt_load->p_offset + elf_pt_load->p_memsz)
-# define CODE_ADRESS (START_ADRESS + CODE_OFFSET)
+# define CODE_ADRESS (old_entry + CODE_OFFSET)
 
 int		initialize_packer(t_packer *pack, char *file_to_open)
 {
@@ -46,87 +43,76 @@ void	openFile(char *to_read, t_packer *pack)
 	lseek(pack->_fd, 0, SEEK_SET);
 }
 
+int		is_space_available(Elf64_Phdr *elf_pt_load, size_t code_size)
+{
+	Elf64_Phdr		*elf_pt_load_next;
+
+	elf_pt_load_next = elf_pt_load + 1;
+	if (elf_pt_load->p_type == PT_LOAD && elf_pt_load_next->p_type == PT_LOAD)
+		if (elf_pt_load->p_memsz != elf_pt_load->p_filesz ||
+			(CODE_OFFSET + code_size) > (elf_pt_load_next->p_offset + elf_pt_load->p_offset))
+		return (1);
+	return (0);
+}
+
 void	insert_code(unsigned char *ptr)
 {
-	/* On insert l'instruction pusha avant notre shellcode */
 	ft_memcpy(ptr, pusha, ft_strlen(pusha));
 	ptr += ft_strlen(pusha);
-
-	/* On copie notre shellcode */
 	ft_memcpy(ptr, shellcode, ft_strlen(shellcode));
 	ptr += ft_strlen(shellcode);
-
-	/* On place l'instruction popa juste avant notre JMP */
 	ft_memcpy(ptr, popa, ft_strlen(popa));
 	ptr += ft_strlen(popa);
-
-	/* Et on termine par l'instruction JMP qui donnera la main au programme hote */
 	ft_memcpy(ptr, jmp, ft_strlen(jmp));
 }
 
 int		inject_code(unsigned char *f_mmaped, t_packer *pack)
 {
-	int				i;
-	Elf32_Ehdr		*elf_begin;
-	Elf32_Phdr		*elf_pt_load, *elf_pt_load_next;
-	unsigned int	last_entry;
 	int				jmp_adr;
+	unsigned int	old_entry;
+	size_t			code_size;
+	Elf64_Ehdr		*elf_begin;
+	Elf64_Phdr		*elf_pt_load;
+	Elf64_Phdr		*elf_pt_load_next;
 
-	/* On fait pointer l'entête ELF sur le début du fichier */
+	code_size = ft_strlen(shellcode) + ft_strlen(jmp) + ft_strlen(pusha) + ft_strlen(popa);
 	elf_begin = (void*)f_mmaped;
-	/* On sauvegarde l'ancienne entrée du programme */
-	last_entry = elf_begin->e_entry;
-
-	/* Simple vérification du fichier */
+	old_entry = elf_begin->e_entry;
+	printf("entry point = %.8x\n", old_entry);
 	if ((unsigned int)pack->_size < (elf_begin->e_phoff + elf_begin->e_phnum * elf_begin->e_phentsize))
 	{
-		printf("[-] ELF malformed.\n");
+		ft_putstr("[-] ELF malformed.\n");
 		return (-1);
 	}
+	elf_pt_load = (void*)f_mmaped + elf_begin->e_phoff;	/* going to beginning of segment */
 
-	/* On fait pointer l'entête de segment sur le début de la table de segment */
-
-	elf_pt_load = (void*)f_mmaped + elf_begin->e_phoff;
-	printf("[+] Find a free space under a PT_LOAD segment...\n");
-	/* On recherche le premier segment PT_LOAD */
-	for (i = 0; i < elf_begin->e_phnum - 2; i++)
+	ft_putstr("[+] Finding a free space under a PT_LOAD segment...\n");
+	for (int i = 0; i < elf_begin->e_phnum - 2; i++) 	/* searching for PT_LOAD */
 	{
-		elf_pt_load_next = elf_pt_load + 1;
-		if (elf_pt_load->p_type == PT_LOAD && elf_pt_load_next->p_type == PT_LOAD)
+		if (is_space_available(elf_pt_load, code_size) == 1)
 			break;
 		elf_pt_load++;
 	}
-
-	/* On vérifie que nous avons bien deux segments PT_LOAD */
-	if (elf_pt_load_next->p_type != PT_LOAD || elf_pt_load->p_type != PT_LOAD)
+	if (!(elf_pt_load + 1) || is_space_available(elf_pt_load, code_size) != 1)
 	{
-		printf("[-] Didn't found two PT_LOAD segment.\n");
+		ft_putstr("[-] Didn't found enough space.\n");
 		return (-1);
 	}
+	elf_pt_load_next = elf_pt_load + 1;
+	ft_printf("[+] Free space found : %d bytes.\n", (elf_pt_load_next->p_offset) - (CODE_OFFSET));
 
-	/* On vérifie que l'espace entre ces deux segments est suffisant pour y loger notre code */
-	if (elf_pt_load->p_memsz != elf_pt_load->p_filesz || (CODE_OFFSET + CODE_SIZE) > (elf_pt_load_next->p_offset + elf_pt_load->p_offset))
-	{
-		printf("[-] Don't found a free space.\n");
-		return (-1);
-	}
+	ft_printf("[+] Overwriting entry point (0x%.8x) program with shellcode adress (0x%.8x)...\n", old_entry, CODE_ADRESS);
+	elf_begin->e_entry = (old_entry + elf_pt_load->p_offset + elf_pt_load->p_memsz);	/* changing old entry of the code by the address of ours */
 
-	printf("[+] Free space found : %d bytes.\n", (elf_pt_load_next->p_offset) - (CODE_OFFSET));    
-	printf("[+] Overwrite entry point (0x%.8x) programm with shellcode adress (0x%.8x)...\n", last_entry, CODE_ADRESS);
-	/* On écrase l'ancienne entrée du programme, par l'adresse où sera placé notre code */
-	elf_begin->e_entry = (START_ADRESS + elf_pt_load->p_offset + elf_pt_load->p_memsz);
-
-	printf("[+] Inject fake jmp to last entry point...\n");
-	/* On modifie l'instruction JMP pour qu'elle retourne au point d'entrée initial */
-	jmp_adr = (last_entry - (elf_begin->e_entry + CODE_SIZE));    
+	ft_putstr("[+] Injecting fake jmp to last entry point...\n");
+	jmp_adr = (old_entry - (elf_begin->e_entry + code_size)); /* modifying JMP to get back to original entry */
 	ft_memcpy(jmp + 1, &jmp_adr, sizeof(int));
 
-	printf("[+] Inject code (%ld bytes) at offset %.8x (virtual adress 0x%.8x)...\n", CODE_SIZE, CODE_OFFSET, CODE_ADRESS);
+	ft_printf("[+] Injecting code (%ld bytes) at offset %.8x (virtual adress 0x%.8x)...\n", code_size, CODE_OFFSET, CODE_ADRESS);
 	insert_code(f_mmaped + CODE_OFFSET);
 
-	/* On augmente la taille du segment (dans l'entête ELF) où l'on a placé notre shellcode */
-	printf("[+] Update segment size...\n");
-	elf_pt_load->p_memsz += CODE_SIZE;
-	elf_pt_load->p_filesz += CODE_SIZE;
+	ft_putstr("[+] Updating segment size...\n");
+	elf_pt_load->p_memsz += code_size;
+	elf_pt_load->p_filesz += code_size;
 	return (0);
 }
