@@ -10,7 +10,7 @@ SRCS			=	srcs/main.cpp		\
 
 
 #=============================FLAGS AND COMPILERS===============================
-CCPP			=	clang++
+CCPP			=	gcc
 CPPFLAGS		=	-Wall -Wextra -Werror -I .includes/
 NAME			=	woody_woodpacker
 NAME_LIB		=	./libft/libft.a
