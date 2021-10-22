@@ -12,7 +12,6 @@ void	free_all(t_packer *pack)
 	}
 }
 
-
 int		create_woody(t_packer *pack)
 {
 	int		fd;
@@ -54,13 +53,20 @@ int		main(int ac, char **av)
 		free_all(pack);
 		return (1);
 	}
+	if (create_woody(pack) == -1)
+	{
+		ft_putstr_fd("Error while creating or writing in \"woody\" file\n", 2);
+		free_all(pack);
+		return (1);
+	}
 
     printf("[+] Mmap file in memory...n");
     if((f_mmaped = mmap(NULL, pack->_size, PROT_READ | PROT_WRITE, MAP_SHARED, pack->_fd, 0)) == NULL)
     {
 		ft_putstr_fd("Error while mmap\n", 2);
 		free_all(pack);
-		return (1);    }
+		return (1);
+	}
     inject_code(f_mmaped, pack);
     if(munmap(f_mmaped, pack->_size) == -1)
     {
@@ -69,12 +75,6 @@ int		main(int ac, char **av)
 		return (1);
 	}
 
-	if (create_woody(pack) == -1)
-	{
-		ft_putstr_fd("Error while creating or writing in \"woody\" file\n", 2);
-		free_all(pack);
-		return (1);
-	}
 	free_all(pack);
 	return (0);
 }
