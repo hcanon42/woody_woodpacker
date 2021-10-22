@@ -33,7 +33,7 @@ Antiviruses usually analyze a binary when they open it and load it up. So if you
 
 Just pull the project !\
 \
-There is a "tests" folder in which you have several binaries which you can modify. You also can change the tests/malicious.asm file used to inject specific code into the binaries.\
+There is a "tests" folder in which you have several binaries which you can modify. You also can change the ./tests/malicious.asm file used to inject specific code into the binaries.\
 \
 *Pro tip if you change ./tests/malicious.asm*: The bigger the code is, the bigger the injected shellcode will be, and so the less likely the packer will found a place to inject the code !
 

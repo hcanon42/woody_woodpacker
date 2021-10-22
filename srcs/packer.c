@@ -89,10 +89,25 @@ int		inject_code(unsigned char *f_mmaped, t_packer *pack)
 	ft_putstr("[+] Finding a free space under a PT_LOAD segment...\n");
 	for (int i = 0; i < elf_begin->e_phnum - 2; i++) 	/* searching for PT_LOAD */
 	{
-		if (is_space_available(elf_pt_load, code_size) == 1)
-			break;
-		elf_pt_load++;
-	}
+    //   if (elf_pt_load->p_type == PT_LOAD && elf_pt_load->p_flags & 0x011)
+	// {
+	//   printf ("+ Found .text segment (#%d)\n", i);
+	//   text_seg = elf_pt_load;
+	//   text_end = elf_pt_load->p_offset + elf_pt_load->p_filesz;
+	// }
+    //   else
+	// {
+	//   if (elf_pt_load->p_type == PT_LOAD && 
+	//       (elf_pt_load->p_offset - text_end) < gap) 
+	//     {
+	//       printf ("   * Found LOAD segment (#%d) close to .text (offset: 0x%x)\n",
+	// 	      i, (unsigned int)elf_pt_load->p_offset);
+	//       gap = elf_pt_load->p_offset - text_end;
+	//     }
+	// }
+		elf_pt_load = (Elf64_Phdr *) ((unsigned char*) elf_pt_load 
+					+ (unsigned int) elf_begin->e_phentsize);
+    }
 	if (!(elf_pt_load + 1) || is_space_available(elf_pt_load, code_size) != 1)
 	{
 		ft_putstr("[-] Didn't found enough space.\n");
