@@ -51,7 +51,7 @@ make re		#cleans everything in the project and compiles everything again
 Specific to the project:
 ````sh
 ./woody_woodpacker [ELF64_file]	#creates "woody", a copy of the original binary with injected code in it
-./woody							#decryts itself, writes "....WOODY....\n", and then does the same thing as the binary from which it has been created
+./woody			#decryts itself, writes "....WOODY....\n", and then does the same thing as the binary from which it has been created
 ````
 
 ## Utility
