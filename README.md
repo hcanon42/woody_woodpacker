@@ -20,7 +20,6 @@ Project is created with:
 ## Description
 
 * The first aim of this project is to create a simple packer.\
-
 A packer is a program which opens, encrypts and usually compresses a binary file (ELF64 for only supported for now).\
 Althought on this project the compression is optional and not done for the moment. I'll keep this project maintained and up, and perhaps will include an assembly compressor in the future.
 
